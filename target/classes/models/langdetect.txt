@@ -1,0 +1,45 @@
+package clustering.detector;
+import clustering.langdetect.*;
+import opennlp.tools.util.ObjectStream;
+import opennlp.tools.util.TrainingParameters;
+
+import java.io.*;
+public class LanguageDetectorObj {
+    private LanguageDetectorModel model;
+
+    public static  LanguageDetectorSampleStream readStream(ObjectStream linestream) {
+        return new LanguageDetectorSampleStream(linestream);
+    }
+
+    public LanguageDetectorObj(LanguageDetectorSampleStream sampleStream, String iterCount, String cutOFF, String dataIndexer,
+                              String algorithm) {
+        TrainingParameters parameters = new TrainingParameters();
+
+        parameters.put(TrainingParameters.ITERATIONS_PARAM, iterCount);
+        parameters.put(TrainingParameters.CUTOFF_PARAM, cutOFF);
+        parameters.put("DataIndexer", dataIndexer);
+        parameters.put(TrainingParameters.ALGORITHM_PARAM, algorithm);
+
+        try {
+            model = LanguageDetectorME.train(sampleStream, parameters, new LanguageDetectorFactory());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Completed");
+
+    }
+
+    public LanguageDetectorModel getModel() {
+        return model;
+    }
+
+    public void doPrediction(LanguageDetectorModel model, String line) {
+        LanguageDetector ld = new LanguageDetectorME(model);
+        Language[] languages = ld.predictLanguages(line);
+        System.out.println("Predicted languages..");
+        for(Language language:languages){
+            System.out.println(language.getLang()+"  confidence:"+language.getConfidence());
+        }
+    }
+
+}
